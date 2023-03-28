@@ -5,17 +5,17 @@ import com.example.devkakao.blog.object.dto.KakaoBlogDTO;
 import com.example.devkakao.blog.persistent.SearchrankRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import javax.transaction.Transactional;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,60 +28,60 @@ public class BlogService {
     private final ModelMapper modelMapper;
 
 
-    public String getSearchKakaoBlog(String target) throws Exception{
+    public KakaoBlogDTO getSearchKakaoBlog(String target) {
 
-        String result ="";
-        String api_key = "KakaoAK " + "1475c041c4374a6cff8ff6c7a4edcc21";
-        String query = "query=" + target;
-        String api_url = "https://dapi.kakao.com/v2/search/blog?" + query;
-        String sort = "accuracy";
+        String api_key = "1475c041c4374a6cff8ff6c7a4edcc21";
 
-        System.out.println(api_key);
         int page;
         int size;
 
-        try {
-            JSONObject req = new JSONObject();
+        Mono<String> mono = WebClient.builder()
+                .baseUrl("https://dapi.kakao.com")
+                .build().get()
+                .uri(buillder -> buillder.path("/v2/search/blog.json")
+                        .queryParam("query", target)
+                        .build()
+                )
+                .header("Authorization", "KakaoAK " + api_key)
+                .exchangeToMono(response -> {
+                    return response.bodyToMono(String.class);
+                });
 
-            URL url = new URL(api_url);
+        String respStr = mono.block();
+        JSONObject respJson = (JSONObject) JSONValue.parse(respStr);
 
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        JSONObject respMeta = (JSONObject) respJson.get("meta");
+        JSONArray respDocuments = (JSONArray) respJson.get("documents");
 
+        KakaoBlogDTO kakaoBlogDTO = new KakaoBlogDTO();
+        List<KakaoBlogDTO.Documents> documents = new ArrayList<>();
+        KakaoBlogDTO.Meta meta = new KakaoBlogDTO.Meta();
 
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json; utf-8");
-            conn.setRequestProperty("Authorization", api_key);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
+        meta.setTotal_count((int)respMeta.get("total_count"));
+        meta.setPageable_count((int)respMeta.get("pageable_count"));
+        meta.setIs_end((Boolean)respMeta.get("is_end"));
+        kakaoBlogDTO.setMeta(meta);
 
+        System.out.println(kakaoBlogDTO.getMeta().getTotal_count());
 
-            OutputStreamWriter os = new OutputStreamWriter(conn.getOutputStream());
-            os.write(req.toString());
-            os.flush();
-
-            BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-            JSONObject jsonObj = (JSONObject) JSONValue.parse(input.readLine());
-
-            System.out.println(jsonObj);
-
-            input.close();
-            conn.disconnect();
-
-
-
-            KakaoBlogDTO kakaoBlogDTO = new KakaoBlogDTO();
-            System.out.println(kakaoBlogDTO.getMetaInfo());
-
-            result = "response, meta :: " + jsonObj.get("meta");
-            JSONObject jsonResult = (JSONObject) JSONValue.parse(result);
-            System.out.println();
-            result = "response, documents :: " + jsonObj.get("documents");
-            System.out.println(jsonResult.get("total_count"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        for(Object obj : respDocuments) {
+            JSONObject respBlog = (JSONObject) obj;
+            KakaoBlogDTO.Documents doc = new KakaoBlogDTO.Documents();
+            doc.setBlogname((String)respBlog.get("blogname"));
+            doc.setTitle((String)respBlog.get("title"));
+            doc.setContents((String)respBlog.get("contents"));
+            doc.setThumbnail((String)respBlog.get("thumbnail"));
+            doc.setUrl((String)respBlog.get("url"));
+            doc.setDateTime((String)respBlog.get("datetime"));
+            //System.out.println(doc);
+            documents.add(doc);
         }
-        return result;
+
+        kakaoBlogDTO.setDocuments(documents);
+
+        System.out.println(kakaoBlogDTO.getDocuments().get(0).getBlogname());
+
+        return kakaoBlogDTO;
     }
 
     /*

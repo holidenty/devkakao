@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @ToString
@@ -13,10 +14,12 @@ import java.time.LocalDateTime;
 @Setter
 public class KakaoBlogDTO {
 
-    MetaInfo metaInfo;
-    DocumentsInfo documentsInfo;
+    public Meta meta;
+    public List<Documents> documents;
 
-    public class MetaInfo{
+    @Getter
+    @Setter
+    public static class Meta{
 
         @Schema(description = "검색된 문서 수", example = "5")
         int total_count;
@@ -29,7 +32,9 @@ public class KakaoBlogDTO {
 
     }
 
-    public class DocumentsInfo{
+    @Getter
+    @Setter
+    public static class Documents{
 
         @Schema(description = "블로그 글 제목", example = "작은 <b>집</b> <b>짓기</b> 기본컨셉 - <b>집</b><b>짓기</b> 초기구상하기")
         String title;
@@ -47,7 +52,7 @@ public class KakaoBlogDTO {
         String thumbnail;
 
         @Schema(description = "블로그 글 작성시간", example = "2017-05-07T18:50:07.000+09:00")
-        LocalDateTime dateTime;
+        String dateTime;
 
     }
 }

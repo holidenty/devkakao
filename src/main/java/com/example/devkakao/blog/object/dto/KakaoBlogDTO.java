@@ -14,8 +14,9 @@ import java.util.List;
 @Setter
 public class KakaoBlogDTO {
 
-    public Meta meta;
-    public List<Documents> documents;
+    String source = "KakaoBlog";
+    Meta meta;
+    List<Documents> documents;
 
     @Getter
     @Setter
@@ -35,6 +36,12 @@ public class KakaoBlogDTO {
     @Getter
     @Setter
     public static class Documents{
+
+        @Schema(description = "페이지 번호", example = "1")
+        int pageNumber;
+
+        @Schema(description = "페이지 내 글 번호", example = "1")
+        int blogNumber;
 
         @Schema(description = "블로그 글 제목", example = "작은 <b>집</b> <b>짓기</b> 기본컨셉 - <b>집</b><b>짓기</b> 초기구상하기")
         String title;

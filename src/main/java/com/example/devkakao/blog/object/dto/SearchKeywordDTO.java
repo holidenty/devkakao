@@ -1,6 +1,5 @@
 package com.example.devkakao.blog.object.dto;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Getter
 @Setter
-public class SearchrankDTO {
+public class SearchKeywordDTO {
 
     @Schema(description = "ID값, 자동 증가")
     private Long id;

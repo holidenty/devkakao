@@ -5,7 +5,7 @@
 1. jar 파일 실행
   
 ```
-java -jar
+java -jar devkakao-0.0.1-SNAPSHOT.jar
 ```
 
 2. Swagger 오픈
@@ -18,9 +18,5 @@ http://localhost:8080/swagger-ui/index.html
 http://localhost:8080/h2-console
 ```
 
-
-## API 명세서
-
-1. 
 
 

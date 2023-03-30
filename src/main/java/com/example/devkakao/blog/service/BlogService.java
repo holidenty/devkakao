@@ -33,15 +33,10 @@ public class BlogService {
     private final SearchKeywordRepository searchrankRepository;
     private final ModelMapper modelMapper;
 
-
     public KakaoBlogDTO getSearchKakaoBlog(String target, int page, int size, String sort) {
 
         String api_key = "1475c041c4374a6cff8ff6c7a4edcc21";
         String respStr = "";
-        System.out.println("target : " + target);
-        System.out.println("page : " + page);
-        System.out.println("size : " + size);
-        System.out.println("sort : " + sort);
 
         //####################### Kakao API 호출 부분 START #############################
         try {
@@ -63,7 +58,7 @@ public class BlogService {
             respStr = mono.block();
 
         } catch (Exception e) {
-            System.out.println("Kakao API 호출 오류, Naver API로 대체 Call");
+            System.out.println("Kakao API 호출 오류");
         }
 
         //####################### Kakao API 호출 부분 END ###############################
@@ -96,7 +91,7 @@ public class BlogService {
 
             System.out.println(kakaoBlogDTO.getMeta().getTotal_count());
 
-            int number = 0;
+            int number = 1;
             for (Object obj : respDocuments) {
                 JSONObject respBlog = (JSONObject) obj;
                 KakaoBlogDTO.Documents doc = new KakaoBlogDTO.Documents();
@@ -116,9 +111,8 @@ public class BlogService {
             System.out.println(kakaoBlogDTO.getDocuments().get(0).getBlogname());
             //####################### 결과값 Parsing 부분 END #############################
         } catch (Exception e) {
-            System.out.println("반환 객체 생성 에러!");
+            System.out.println("결과값 반환 객체 생성 오류");
         }
-
         return kakaoBlogDTO;
     }
 
@@ -134,10 +128,6 @@ public class BlogService {
         String client_id = "tiqtmtEf2hsYVMnsMhjH";
         String client_key = "MhMmTRzAuN";
         String respStr = "";
-        System.out.println("target : " + target);
-        System.out.println("page : " + page);
-        System.out.println("size : " + size);
-        System.out.println("sort : " + sort);
 
         //####################### Naver API 호출 부분 START #############################
         try {
@@ -189,10 +179,12 @@ public class BlogService {
             naverBlogDTO.setStart((int)respJson.get("start"));
             naverBlogDTO.setLastBuildDate((String)respJson.get("lastBuildDate"));
 
-            int number = 0;
+            int number = 1;
             for (Object obj : respItems) {
                 JSONObject respBlog = (JSONObject) obj;
                 NaverBlogDTO.Items item = new NaverBlogDTO.Items();
+                item.setPageNumber(page);
+                item.setBlogNumber(number++);
                 item.setTitle((String) respBlog.get("title"));
                 item.setDescription((String)respBlog.get("description"));
                 item.setLink((String)respBlog.get("link"));
@@ -228,14 +220,22 @@ public class BlogService {
             searchKeywordDTO.setCount(searchKeywordDTO.getCount()+1);
             SearchKeyword searchKeyword = optionalSearchKeyword.get();
             searchKeyword.update(searchKeywordDTO);
-            searchrankRepository.save(searchKeyword);
+            try {
+                searchrankRepository.save(searchKeyword);
+            } catch (Exception e) {
+                System.out.println("JPA Save 오류");
+            }
         }
         else {
             SearchKeywordDTO newKeyword = new SearchKeywordDTO();
             newKeyword.setTarget(query);
             newKeyword.setCount(1);
             SearchKeyword searchKeyword = modelMapper.map(newKeyword, SearchKeyword.class);
-            searchrankRepository.save(searchKeyword);
+            try {
+                searchrankRepository.save(searchKeyword);
+            } catch (Exception e) {
+                System.out.println("JPA Save 오류");
+            }
         }
     }
 
